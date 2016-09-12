@@ -1,0 +1,25 @@
+{
+  "name": "html-crop",
+  "description": "client javascript solution to crop html page",
+  "main": "lib/html-crop.js",
+  "authors": [
+    "Barak Shirali"
+  ],
+  "license": "MIT",
+  "keywords": [
+    "crop",
+    "html",
+    "javascript",
+    "save",
+    "canvas"
+  ],
+  "homepage": "https://github.com/barak-shirali/html-crop",
+  "private": true,
+  "ignore": [
+    "**/.*",
+    "node_modules",
+    "bower_components",
+    "test",
+    "tests"
+  ]
+}

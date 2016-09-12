@@ -2,7 +2,7 @@
   "name": "html-crop",
   "version": "0.0.1",
   "description": "client javascript solution to crop html page",
-  "main": "index.js",
+  "main": "lib/html-crop.js",
   "scripts": {
     "build": "webpack --mode=build",
     "dev": "webpack --progress --colors --watch --mode=dev",
