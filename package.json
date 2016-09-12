@@ -2,7 +2,7 @@
   "name": "html-crop",
   "version": "0.0.1",
   "description": "client javascript solution to crop html page",
-  "main": "lib/html-crop.js",
+  "main": "lib/HtmlCrop.js",
   "scripts": {
     "build": "webpack --mode=build",
     "dev": "webpack --progress --colors --watch --mode=dev",
@@ -43,6 +43,7 @@
     "eslint-plugin-import": "^1.14.0",
     "eslint-plugin-jsx-a11y": "^2.2.1",
     "eslint-plugin-react": "^6.2.0",
+    "html2canvas": "^0.5.0-beta4",
     "mocha": "^3.0.2",
     "webpack": "^1.13.2",
     "yargs": "^5.0.0"

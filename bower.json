@@ -1,7 +1,7 @@
 {
   "name": "html-crop",
   "description": "client javascript solution to crop html page",
-  "main": "lib/html-crop.js",
+  "main": "lib/HtmlCrop.js",
   "authors": [
     "Barak Shirali"
   ],
