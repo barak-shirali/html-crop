@@ -4,7 +4,13 @@
   "description": "client javascript solution to crop html page",
   "main": "index.js",
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "build": "webpack --mode=build",
+    "dev": "webpack --progress --colors --watch --mode=dev",
+    "test": "mocha --compilers js:babel-core/register --colors -w ./test/*.spec.js"
+  },
+  "engines": {
+    "node": ">=6 && <7",
+    "npm": ">=3"
   },
   "repository": {
     "type": "git",
@@ -22,5 +28,23 @@
   "bugs": {
     "url": "https://github.com/barak-shirali/html-crop/issues"
   },
-  "homepage": "https://github.com/barak-shirali/html-crop#readme"
+  "homepage": "https://github.com/barak-shirali/html-crop#readme",
+  "devDependencies": {
+    "babel": "^6.5.2",
+    "babel-core": "^6.14.0",
+    "babel-eslint": "^6.1.2",
+    "babel-loader": "^6.2.5",
+    "babel-plugin-add-module-exports": "^0.2.1",
+    "babel-preset-es2015": "^6.14.0",
+    "chai": "^3.5.0",
+    "eslint": "^3.5.0",
+    "eslint-config-airbnb": "^11.1.0",
+    "eslint-loader": "^1.5.0",
+    "eslint-plugin-import": "^1.14.0",
+    "eslint-plugin-jsx-a11y": "^2.2.1",
+    "eslint-plugin-react": "^6.2.0",
+    "mocha": "^3.0.2",
+    "webpack": "^1.13.2",
+    "yargs": "^5.0.0"
+  }
 }
