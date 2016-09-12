@@ -16,10 +16,10 @@ export default class Rect extends BaseObject {
   constructor(x, y, w, h, fill, debugMode = true) {
     super();
 
-    this.x = x || 0;
-    this.y = y || 0;
-    this.w = w || 1;
-    this.h = h || 1;
+    this._x = x || 0;
+    this._y = y || 0;
+    this._w = w || 1;
+    this._h = h || 1;
     this._fill = fill || '#AAAAAA';
     this._debugMode = debugMode;
 
