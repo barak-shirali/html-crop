@@ -29,12 +29,18 @@ var config = {
       {
         test: /(\.jsx|\.js)$/,
         loader: 'babel',
-        exclude: /(node_modules|bower_components)/
+        include: [
+          path.resolve(__dirname, './src'),
+          /node_modules\/(html2canvas)/
+        ]
       },
       {
         test: /(\.jsx|\.js)$/,
-        loader: "eslint-loader",
-        exclude: /node_modules/
+        loader: 'eslint-loader',
+        include: [
+          path.resolve(__dirname, './src'),
+          /node_modules\/(html2canvas)/
+        ]
       }
     ]
   },
