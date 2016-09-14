@@ -1,22 +1,17 @@
-<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.0//EN" "http://www.w3.org/TR/REC-html40/strict.dtd">
 <html>
   <head>
     <title>
       display/box/float/clear test
     </title>
     <style type="text/css">
-      /* last modified: 1 Dec 98 */
-      html {
-        font: 10px/1 Verdana, sans-serif;
-        background-color: blue;
-        color: white;
-      }
       body {
+        font: 10px/1 Verdana, sans-serif;
+        color: white;
         margin: 1.5em;
         border: .5em solid black;
         padding: 0;
         width: 48em;
-        background-color: white;
+        background: #bbb;
       }
       dl {
         margin: 0;
@@ -156,9 +151,6 @@
     <p style="color: black; font-size: 1em; line-height: 1.3em; clear: both">
       This is a nonsensical document, but syntactically valid HTML 4.0. All 100% conformant CSS1 agents should be able to render the document elements above this paragraph <b>indistinguishably</b> (to the pixel) from this reference rendering, (except font rasterization and form widgets). All discrepancies should be traceable to CSS1 implementation shortcomings. Once you have finished evaluating this test, you can return to the <A HREF="sec5526c.htm" style="text-decoration:none">parent page</A>.
     </p>
-    <canvas id="canvas" width="400" height="300">
-      This text is displayed if your browser does not support HTML5 Canvas.
-    </canvas>
     <script type="text/javascript" src="../lib/HtmlCrop.js"></script>
     <script type="text/javascript">
       new HtmlCrop(document, {debug: true});

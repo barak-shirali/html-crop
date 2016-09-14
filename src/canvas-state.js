@@ -77,11 +77,89 @@ export default class CanvasState extends BaseObject {
 
         this.log('mouse down detected. starting drag', mx, my);
       }
+
+      this._currentHandle = this._shape.getHoverSelectionHandle(mouse.x, mouse.y);
     }, true);
 
     _canvas.addEventListener('mousemove', (e) => {
-      if (this._dragging) {
-        const mouse = this.getMouse(e);
+      const { _shape } = this;
+      const mouse = this.getMouse(e);
+      const oldx = _shape._x;
+      const oldy = _shape._y;
+      const mx = mouse.x;
+      const my = mouse.y;
+      const handleIndex = _shape.getHoverSelectionHandle(mx, my);
+      switch (handleIndex) {
+        case 0:
+          _canvas.style.cursor = 'nw-resize';
+          break;
+        case 1:
+          _canvas.style.cursor = 'n-resize';
+          break;
+        case 2:
+          _canvas.style.cursor = 'ne-resize';
+          break;
+        case 3:
+          _canvas.style.cursor = 'w-resize';
+          break;
+        case 4:
+          _canvas.style.cursor = 'e-resize';
+          break;
+        case 5:
+          _canvas.style.cursor = 'sw-resize';
+          break;
+        case 6:
+          _canvas.style.cursor = 's-resize';
+          break;
+        case 7:
+          _canvas.style.cursor = 'se-resize';
+          break;
+        default:
+          _canvas.style.cursor = 'auto';
+      }
+
+      if (this._currentHandle !== false) {
+        // Handles resizing
+        switch (this._currentHandle) {
+          case 0:
+            _shape._x = mx;
+            _shape._y = my;
+            _shape._w += oldx - mx;
+            _shape._h += oldy - my;
+            break;
+          case 1:
+            _shape._y = my;
+            _shape._h += oldy - my;
+            break;
+          case 2:
+            _shape._y = my;
+            _shape._w = mx - oldx;
+            _shape._h += oldy - my;
+            break;
+          case 3:
+            _shape._x = mx;
+            _shape._w += oldx - mx;
+            break;
+          case 4:
+            _shape._w = mx - oldx;
+            break;
+          case 5:
+            _shape._x = mx;
+            _shape._w += oldx - mx;
+            _shape._h = my - oldy;
+            break;
+          case 6:
+            _shape._h = my - oldy;
+            break;
+          case 7:
+            _shape._w = mx - oldx;
+            _shape._h = my - oldy;
+            break;
+          default:
+            break;
+        }
+        this._valid = false;
+      } else if (this._dragging) {
         // We don't want to drag the object by its top-left corner, we want to drag it
         // from where we clicked. Thats why we saved the offset and use it here
         this._shape._x = mouse.x - this._dragoffx;
@@ -94,6 +172,7 @@ export default class CanvasState extends BaseObject {
 
     _canvas.addEventListener('mouseup', () => {
       this._dragging = false;
+      this._currentHandle = false;
       this.log('dragging finished');
     });
 
@@ -116,6 +195,15 @@ export default class CanvasState extends BaseObject {
   }
 
   /**
+   * Returns shape positions
+   * @returns {{x, y, w, h}}
+   */
+  getSelection() {
+    const { _x, _y, _w, _h } = this._shape;
+    return { x: _x, y: _y, w: _w, h: _h };
+  }
+
+  /**
    * clears the canvas for next draw
    */
   clear() {
@@ -132,14 +220,15 @@ export default class CanvasState extends BaseObject {
       const { _ctx, _shape } = this;
       this.clear();
 
-      // @TODO draw background here
+      // fill outside of the rectangle
+      _ctx.fillStyle = 'rgba(0,0,0,.8)';
+      _ctx.beginPath();
+      _ctx.rect(_shape._x, _shape._y, _shape._w, _shape._h);
+      _ctx.rect(this._width, 0, -this._width, this._height);
+      _ctx.fill();
 
       // draw shape
       _shape.draw(_ctx);
-
-      _ctx.strokeStyle = '#CC0000';
-      _ctx.lineWidth = 2;
-      _ctx.strokeRect(_shape._x, _shape._y, _shape._w, _shape._h);
 
       this._valid = true;
 
