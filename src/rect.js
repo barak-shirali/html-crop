@@ -12,12 +12,14 @@ export default class Rect extends BaseObject {
    * @param {number} w - width
    * @param {number} h - height
    * @param {string} fill - background color of the shape
+   * @param {number} selectionBoxSize - width/height of selection handle
+   * @param {bool} debugMode
    */
-  constructor(x, y, w, h, fill, debugMode = true) {
+  constructor(x, y, w, h, fill, selectionBoxSize = 6, debugMode = true) {
     super();
 
     this._selectionHandles = [];
-    this._selectionBoxSize = 6;
+    this._selectionBoxSize = selectionBoxSize;
     for (let i = 0; i < 8; i += 1) {
       this._selectionHandles.push({ x: 0, y: 0 });
     }
