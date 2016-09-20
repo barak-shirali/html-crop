@@ -1,6 +1,7 @@
 import html2canvas from 'html2canvas';
 import BaseObject from './base-object';
 import CanvasState from './canvas-state';
+import PreviewModal from './preview-modal';
 
 const defaultOptions = {
   key: {
@@ -8,6 +9,7 @@ const defaultOptions = {
     shiftKey: true,
     key: 'F7'
   },
+  serverURL: '',
   startButton: true,
   debug: true
 };
@@ -48,6 +50,11 @@ export default class HtmlCrop extends BaseObject {
    * starts cropping the page
    */
   startCropping() {
+    if (this._started) {
+      return;
+    }
+
+    this._started = true;
     this._disableScroll();
 
     html2canvas(this._document.html).then((canvas) => {
@@ -60,19 +67,19 @@ export default class HtmlCrop extends BaseObject {
       selectionCanvas.style.position = 'fixed';
       selectionCanvas.style.left = '0';
       selectionCanvas.style.top = '0';
-      selectionCanvas.style['z-index'] = 9999998;
+      selectionCanvas.style['z-index'] = 9999997;
 
       this._document.body.appendChild(selectionCanvas);
 
       // debug mode is set as false because of lots of logging
-      this._canvasState = new CanvasState(this._document, selectionCanvas, true);
+      this._attachCaptureButton();
+      this._canvasState = new CanvasState(this._document, selectionCanvas, this._renderSelection.bind(this), true);
 
       // removes start button and event listener to avoid multiple cropping instances
       if (this._startButton) {
         this._document.body.removeChild(this._startButton);
       }
       this._document.removeEventListener('keydown', this._onKeyDown);
-      this._attachCaptureButton();
     });
   }
 
@@ -80,7 +87,22 @@ export default class HtmlCrop extends BaseObject {
    * ends cropping
    */
   endCropping() {
+    if (!this._started) {
+      return;
+    }
 
+    this._started = false;
+    if (this._captureButton) {
+      this._document.body.removeChild(this._captureButton);
+      this._document.body.removeChild(this._cancelButton);
+      this._document.body.removeChild(this._infoDiv);
+    }
+
+    if (this._selectionCanvas) {
+      this._document.body.removeChild(this._selectionCanvas);
+    }
+
+    this.reset();
   }
 
   /**
@@ -109,7 +131,7 @@ export default class HtmlCrop extends BaseObject {
     button.style.position = 'fixed';
     button.style.right = '30px';
     button.style.bottom = '30px';
-    button.style['z-index'] = 9999998;
+    button.style['z-index'] = 9999997;
     button.onclick = this.startCropping.bind(this);
 
     this._startButton = button;
@@ -122,17 +144,56 @@ export default class HtmlCrop extends BaseObject {
    */
   _attachCaptureButton() {
     const { _document } = this;
-    const button = _document.createElement('button');
-    const textNode = _document.createTextNode('Capture');
-    button.appendChild(textNode);
-    button.style.position = 'fixed';
-    button.style.right = '30px';
-    button.style.bottom = '30px';
-    button.style['z-index'] = 9999998;
-    button.onclick = this._onCapture.bind(this);
+    const captureBtn = _document.createElement('button');
+    let textNode = _document.createTextNode('Capture');
+    captureBtn.appendChild(textNode);
+    captureBtn.style.position = 'fixed';
+    captureBtn.style.right = '30px';
+    captureBtn.style.bottom = '30px';
+    captureBtn.style['z-index'] = 9999997;
+    captureBtn.onclick = this._onCapture.bind(this);
 
-    this._captureButton = button;
-    _document.body.appendChild(button);
+    this._captureButton = captureBtn;
+    _document.body.appendChild(captureBtn);
+
+    // appends cancel button on the left side of capture button
+    const cancelBtn = _document.createElement('button');
+    textNode = _document.createTextNode('Cancel');
+    cancelBtn.appendChild(textNode);
+    cancelBtn.style.position = 'fixed';
+    cancelBtn.style.right = '100px';
+    cancelBtn.style.bottom = '30px';
+    cancelBtn.style['z-index'] = 9999997;
+    cancelBtn.onclick = this.endCropping.bind(this);
+
+    this._cancelButton = cancelBtn;
+    _document.body.appendChild(cancelBtn);
+
+    // appends div for width and height of selection here as well
+    const infoDiv = _document.createElement('div');
+    infoDiv.style.position = 'fixed';
+    infoDiv.style.right = '30px';
+    infoDiv.style.bottom = '60px';
+    infoDiv.style.color = 'white';
+    infoDiv.style['z-index'] = 9999997;
+    this._infoDiv = infoDiv;
+    _document.body.appendChild(infoDiv);
+  }
+
+  /**
+   * renders modal window for previewing and compressing
+   * @param {HTMLDOMElement} canvas canvas contains cropped image
+   * @private
+   */
+  _renderPreviewModal(canvas) {
+    this._previewModal = new PreviewModal(this._document, canvas, this.options.serverURL);
+  }
+
+  /**
+   * renders width and height of selection
+   */
+  _renderSelection(w, h) {
+    this._infoDiv.innerHTML = `w: ${Math.round(w)}, h: ${Math.round(h)}`;
   }
 
   /*
@@ -174,10 +235,8 @@ export default class HtmlCrop extends BaseObject {
 
     this._enableScroll();
 
-    const dataURL = newCanvas.toDataURL('image/png');
-
-    // @TODO save dataURL to server
-    window.location.href = dataURL; // eslint-disable-line
+    this._renderPreviewModal(newCanvas);
+    this.endCropping();
   }
 
   /**
@@ -189,7 +248,7 @@ export default class HtmlCrop extends BaseObject {
       if (e.preventDefault) {
         e.preventDefault();
       }
-      e.returnValue = false;
+      e.returnValue = false; // eslint-disable-line
     };
 
     // disable scrolling with keys
@@ -201,6 +260,7 @@ export default class HtmlCrop extends BaseObject {
         preventDefault(e);
         return false;
       }
+      return true;
     };
 
     this._document.onkeydown = preventDefaultForScrollKeys;

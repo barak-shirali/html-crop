@@ -11,13 +11,14 @@ export default class CanvasState extends BaseObject {
    * @param {HTMLDocument} doc
    * @param {HTMLElement} canvas - canvas DOM element
    */
-  constructor(doc, canvas, debugMode = true) {
+  constructor(doc, canvas, onSelectionChange = () => {}, debugMode = true) {
     super();
 
     this._onMouseDown = this._onMouseDown.bind(this);
     this._onMouseMove = this._onMouseMove.bind(this);
     this._onMouseUp = this._onMouseUp.bind(this);
     this._onTouch = this._onTouch.bind(this);
+    this._onSelectionChange = onSelectionChange;
 
     this._document = doc;
     this._canvas = canvas;
@@ -41,6 +42,7 @@ export default class CanvasState extends BaseObject {
 
     this._initRect();
     this._initEvents();
+    this._onSelectionChange(this._shape._w, this._shape._h);
 
     this._interval = 30;
     setInterval(() => {
@@ -150,6 +152,8 @@ export default class CanvasState extends BaseObject {
         default:
           break;
       }
+
+      this._onSelectionChange(_shape._w, _shape._h);
       this._valid = false;
     } else if (this._dragging) {
       // We don't want to drag the object by its top-left corner, we want to drag it
@@ -163,11 +167,8 @@ export default class CanvasState extends BaseObject {
   }
 
   _onMouseUp() {
-    if (this._dragging) {
-      this._dragging = false;
-      this._currentHandle = false;
-      this.log('dragging finished');
-    }
+    this._dragging = false;
+    this._currentHandle = false;
   }
 
   /**
