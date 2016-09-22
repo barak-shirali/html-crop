@@ -16,6 +16,7 @@ export const overlayStyles = {
 export const modalWindowStyles = {
   'background-color': 'white',
   display: 'flex',
+  color: 'black',
   'justify-content': 'center',
   'align-items': 'center',
   'flex-direction': 'column',
@@ -36,8 +37,16 @@ export const actionDivStyles = {
   'flex-direction': 'row'
 };
 
+export const progressDivStyles = {
+  'margin-top': '10px'
+};
+
 export const sendBtnStyles = {
-  'margin-right': '30px'
+  'margin-right': '10px'
+};
+
+export const selectStyles = {
+  'margin-right': '10px'
 };
 
 /**
@@ -59,6 +68,9 @@ export default class PreviewModal extends BaseObject {
     this._serverURL = serverURL;
     this._width = doc.body.clientWidth;
     this._height = doc.body.clientHeight;
+    this._compressionRatio = 1;
+    this._fileFormat = 'image/jpeg';
+    this._debugMode = true;
 
     const overlayDiv = this._document.createElement('div');
     this._overlayDiv = overlayDiv;
@@ -69,36 +81,81 @@ export default class PreviewModal extends BaseObject {
     modalWindow.style.height = this._height / 1.5;
     this._applyStyles(modalWindow, modalWindowStyles);
 
-    const img = this._document.createElement('img');
-    this._img = img;
-    img.src = this.getImage();
-    img.style['max-width'] = this._width / 2;
-    img.style['max-height'] = this._height / 2;
-
     const infoDiv = this._document.createElement('div');
     this._infoDiv = infoDiv;
-    infoDiv.innerHTML = `w: ${canvas.width} h: ${canvas.height}`;
     this._applyStyles(infoDiv, infoDivStyles);
 
     const actionDiv = this._document.createElement('div');
     this._actionDiv = actionDiv;
     this._applyStyles(actionDiv, actionDivStyles);
+
     const sendBtn = this._document.createElement('button');
     sendBtn.appendChild(this._document.createTextNode('Submit Image'));
     this._sendBtn = sendBtn;
+    sendBtn.onclick = this.sendImage.bind(this);
     this._applyStyles(sendBtn, sendBtnStyles);
 
     const cancelBtn = this._document.createElement('button');
+    this._cancelBtn = cancelBtn;
     cancelBtn.appendChild(this._document.createTextNode('Cancel'));
     cancelBtn.onclick = this.removeModal.bind(this);
 
+    const fileFormatSelect = this._document.createElement('select');
+    this._fileFormatSelect = fileFormatSelect;
+    this._applyStyles(fileFormatSelect, selectStyles);
+    fileFormatSelect.innerHTML = `
+      <option value="image/jpeg" selected>image/jpeg</option>
+      <option value="image/gif">image/gif</option>
+    `;
+    fileFormatSelect.onchange = this.updateImage.bind(this);
+
+    const compressionRatioSelect = this._document.createElement('select');
+    this._compressionRatioSelect = compressionRatioSelect;
+    this._applyStyles(compressionRatioSelect, selectStyles);
+    compressionRatioSelect.innerHTML = `
+      <option value="1" selected>Highest quality (1)</option>
+      <option value="0.9">0.9</option>
+      <option value="0.8">0.8</option>
+      <option value="0.7">0.7</option>
+      <option value="0.6">0.6</option>
+      <option value="0.5">0.5</option>
+      <option value="0.4">0.4</option>
+      <option value="0.3">0.3</option>
+      <option value="0.2">0.2</option>
+      <option value="0.1">Lowest quality (0.1)</option>
+    `;
+    compressionRatioSelect.onchange = this.updateImage.bind(this);
+
+    const progressDiv = this._document.createElement('div');
+    progressDiv.innerHTML = 'Not uploaded yet';
+    this._progressDiv = progressDiv;
+    this._applyStyles(progressDiv, progressDivStyles);
+
+    const img = this._document.createElement('img');
+    this._img = img;
+    img.style['max-width'] = this._width / 2;
+    img.style['max-height'] = this._height / 2;
+    this.updateImage();
+
+    actionDiv.appendChild(fileFormatSelect);
+    actionDiv.appendChild(compressionRatioSelect);
     actionDiv.appendChild(sendBtn);
+    actionDiv.appendChild(progressDiv);
     actionDiv.appendChild(cancelBtn);
     modalWindow.appendChild(img);
     modalWindow.appendChild(infoDiv);
     modalWindow.appendChild(actionDiv);
+    modalWindow.appendChild(progressDiv);
     overlayDiv.appendChild(modalWindow);
     this._document.body.appendChild(overlayDiv);
+  }
+
+  /**
+   * returns class name
+   * @returns {string}
+   */
+  getName() {
+    return 'PreviewModal';
   }
 
   /**
@@ -129,7 +186,7 @@ export default class PreviewModal extends BaseObject {
   sendImage() {
     const formData = new FormData();
     formData.append('image', this.getImage());
-
+    formData.append('type', this._fileFormat);
     const xhr = new XMLHttpRequest();
     xhr.addEventListener('load', () => {
       this.log('finished uploading');
@@ -139,6 +196,7 @@ export default class PreviewModal extends BaseObject {
       if (e.lengthComputable) {
         const percentage = Math.round((e.loaded / e.total) * 100);
         this.log(`${percentage}% complete`);
+        this._progressDiv.innerHTML = `${percentage}% complete`;
       }
     });
     xhr.addEventListener('error', () => {
@@ -152,11 +210,29 @@ export default class PreviewModal extends BaseObject {
   }
 
   /**
-   * return image from canvas
-   * @param {string} fileFormat
+   * return image from canvas and calculate size
    * @returns {ImageData}
    */
-  getImage(fileFormat = 'image/jpeg') {
-    return this._canvas.toDataURL(fileFormat);
+  getImage() {
+    const { _canvas } = this;
+    const dataURL = _canvas.toDataURL(this._fileFormat, this._compressionRatio);
+    const header = `data:${this._fileFormat};base64,`;
+    const fileSize = Math.round((dataURL.length - header.length) * 3 / 4 / 100) / 10;
+    this._infoDiv.innerHTML = `w: ${_canvas.width} h: ${_canvas.height} size: ${fileSize}KB`;
+    return dataURL;
+  }
+
+  /**
+   * update image preview
+   */
+  updateImage() {
+    if (!this._img) {
+      return;
+    }
+
+    this._fileFormat = this._fileFormatSelect.value;
+    this._compressionRatio = this._compressionRatioSelect.value * 1;
+
+    this._img.src = this.getImage();
   }
 }

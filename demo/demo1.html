@@ -155,7 +155,16 @@
     </p>
     <script type="text/javascript" src="../lib/HtmlCrop.js"></script>
     <script type="text/javascript">
-      new HtmlCrop(document, {debug: true});
+      new HtmlCrop(document, {
+        key: { // shift+f7 to trigger
+          ctrlKey: false,
+          shiftKey: true,
+          key: 'F7'
+        },
+        serverURL: 'http://localhost/upload-test/upload.php',
+        startButton: true,
+        debug: true
+      });
     </script>
   </body>
 </html>
