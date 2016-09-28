@@ -57,30 +57,36 @@ export default class HtmlCrop extends BaseObject {
     this._started = true;
     this._disableScroll();
 
-    html2canvas(this._document.html).then((canvas) => {
-      this._canvas = canvas;
-
-      const selectionCanvas = this._document.createElement('canvas');
-      this._selectionCanvas = selectionCanvas;
-      selectionCanvas.width = canvas.width;
-      selectionCanvas.height = canvas.height;
-      selectionCanvas.style.position = 'fixed';
-      selectionCanvas.style.left = '0';
-      selectionCanvas.style.top = '0';
-      selectionCanvas.style['z-index'] = 9999997;
-
-      this._document.body.appendChild(selectionCanvas);
-
-      // debug mode is set as false because of lots of logging
-      this._attachCaptureButton();
-      this._canvasState = new CanvasState(this._document, selectionCanvas, this._renderSelection.bind(this), true);
-
-      // removes start button and event listener to avoid multiple cropping instances
-      if (this._startButton) {
-        this._document.body.removeChild(this._startButton);
+    window.onresize = null;
+    window.onresize = () => {
+      if (!this._selectionCanvas) {
+        return;
       }
-      this._document.removeEventListener('keydown', this._onKeyDown);
-    });
+
+      this._canvasState._width = this._selectionCanvas.width = window.innerWidth;
+      this._canvasState._height = this._selectionCanvas.height = window.innerHeight;
+    };
+
+    const selectionCanvas = this._document.createElement('canvas');
+    this._selectionCanvas = selectionCanvas;
+    this._selectionCanvas.width = window.innerWidth;
+    this._selectionCanvas.height = window.innerHeight;
+    selectionCanvas.style.position = 'fixed';
+    selectionCanvas.style.left = '0';
+    selectionCanvas.style.top = '0';
+    selectionCanvas.style['z-index'] = 9999997;
+
+    this._document.body.appendChild(selectionCanvas);
+
+    // debug mode is set as false because of lots of logging
+    this._attachCaptureButton();
+    this._canvasState = new CanvasState(this._document, selectionCanvas, this._renderSelection.bind(this), true);
+
+    // removes start button and event listener to avoid multiple cropping instances
+    if (this._startButton) {
+      this._document.body.removeChild(this._startButton);
+    }
+    this._document.removeEventListener('keydown', this._onKeyDown);
   }
 
   /**
@@ -96,10 +102,6 @@ export default class HtmlCrop extends BaseObject {
       this._document.body.removeChild(this._captureButton);
       this._document.body.removeChild(this._cancelButton);
       this._document.body.removeChild(this._infoDiv);
-    }
-
-    if (this._selectionCanvas) {
-      this._document.body.removeChild(this._selectionCanvas);
     }
 
     this.reset();
@@ -223,20 +225,29 @@ export default class HtmlCrop extends BaseObject {
    * @private
    */
   _onCapture() {
-    const ctx = this._canvas.getContext('2d');
-    const selection = this._canvasState.getSelection();
-    const imgData = ctx.getImageData(selection.x, selection.y, selection.w, selection.h);
+    // remove selection canvas first to remove it from capture
+    this._document.body.removeChild(this._selectionCanvas);
 
-    const newCanvas = this._document.createElement('canvas');
-    newCanvas.width = selection.w;
-    newCanvas.height = selection.h;
-    const newCtx = newCanvas.getContext('2d');
-    newCtx.putImageData(imgData, 0, 0);
+    html2canvas(this._document.html, {
+      logging: this._debugMode
+    }).then((canvas) => {
+      this._canvas = canvas;
 
-    this._enableScroll();
+      const ctx = this._canvas.getContext('2d');
+      const selection = this._canvasState.getSelection();
+      const imgData = ctx.getImageData(selection.x, selection.y, selection.w, selection.h);
 
-    this._renderPreviewModal(newCanvas);
-    this.endCropping();
+      const newCanvas = this._document.createElement('canvas');
+      newCanvas.width = selection.w;
+      newCanvas.height = selection.h;
+      const newCtx = newCanvas.getContext('2d');
+      newCtx.putImageData(imgData, 0, 0);
+
+      this._enableScroll();
+
+      this._renderPreviewModal(newCanvas);
+      this.endCropping();
+    });
   }
 
   /**

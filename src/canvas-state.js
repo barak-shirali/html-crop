@@ -234,7 +234,7 @@ export default class CanvasState extends BaseObject {
     _canvas.addEventListener('mousemove', this._onMouseMove, true);
     _canvas.addEventListener('mouseup', this._onMouseUp, true);
 
-    _canvas.addEventListener('tapstart', this._onTouch, true);
+    _canvas.addEventListener('touchstart', this._onTouch, true);
     _canvas.addEventListener('touchmove', this._onTouch, true);
     _canvas.addEventListener('touchend', this._onTouch, true);
 
