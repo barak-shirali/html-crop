@@ -9,6 +9,7 @@ const defaultOptions = {
     shiftKey: true,
     key: 'F7'
   },
+  proxy: '',
   serverURL: '',
   startButton: true,
   debug: true
@@ -226,10 +227,16 @@ export default class HtmlCrop extends BaseObject {
   _onCapture() {
     // remove selection canvas first to remove it from capture
     this._document.body.removeChild(this._selectionCanvas);
-
-    html2canvas(this._document.html, {
+    const html2canvasOptions = {
       logging: this._debugMode
-    }).then((canvas) => {
+    };
+
+    if (this.options.proxy) {
+      html2canvasOptions.proxy = this.options.proxy;
+    }
+
+    console.log(html2canvasOptions);
+    html2canvas(this._document.html, html2canvasOptions).then((canvas) => {
       this._canvas = canvas;
 
       const ctx = this._canvas.getContext('2d');
