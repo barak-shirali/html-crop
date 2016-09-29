@@ -55,7 +55,6 @@ export default class HtmlCrop extends BaseObject {
     }
 
     this._started = true;
-    this._disableScroll();
 
     window.onresize = null;
     window.onresize = () => {
@@ -243,47 +242,8 @@ export default class HtmlCrop extends BaseObject {
       const newCtx = newCanvas.getContext('2d');
       newCtx.putImageData(imgData, 0, 0);
 
-      this._enableScroll();
-
       this._renderPreviewModal(newCanvas);
       this.endCropping();
     });
-  }
-
-  /**
-   * disables scrolling temporaily
-   * @private
-   */
-  _disableScroll() {
-    const preventDefault = (e = {}) => {
-      if (e.preventDefault) {
-        e.preventDefault();
-      }
-      e.returnValue = false; // eslint-disable-line
-    };
-
-    // disable scrolling with keys
-    // left: 37, up: 38, right: 39, down: 40,
-    // spacebar: 32, pageup: 33, pagedown: 34, end: 35, home: 36
-    const preventDefaultForScrollKeys = (e) => {
-      const keys = [32, 33, 34, 35, 36, 37, 38, 39, 40];
-      if (keys.indexOf(e.keyCode) !== -1) {
-        preventDefault(e);
-        return false;
-      }
-      return true;
-    };
-
-    this._document.onkeydown = preventDefaultForScrollKeys;
-    this._document.onmousewheel = preventDefault;
-  }
-
-  /**
-   * enables scrolling
-   * @private
-   */
-  _enableScroll() {
-    this._document.onkeydown = null;
-    this._document.onmousewheel = null;
   }
 }
