@@ -153,6 +153,10 @@ export default class CanvasState extends BaseObject {
           break;
       }
 
+      // force _w and _h > 1
+      if (_shape._w < 1) _shape._w = 1;
+      if (_shape._h < 1) _shape._h = 1;
+
       this._onSelectionChange(_shape._w, _shape._h);
       this._valid = false;
     } else if (this._dragging) {
@@ -288,9 +292,23 @@ export default class CanvasState extends BaseObject {
 
       // fill outside of the rectangle
       _ctx.fillStyle = 'rgba(0,0,0,.8)';
+      const {
+        _x: x,
+        _y: y,
+        _w: w,
+        _h: h
+      } = _shape;
       _ctx.beginPath();
-      _ctx.rect(_shape._x, _shape._y, _shape._w, _shape._h);
-      _ctx.rect(this._width, 0, -this._width, this._height);
+      _ctx.moveTo(x, y);
+      _ctx.lineTo(x + w, y);
+      _ctx.lineTo(x + w, y + h);
+      _ctx.lineTo(x, y + h);
+      _ctx.lineTo(x, y);
+      _ctx.moveTo(this._width, 0);
+      _ctx.lineTo(0, 0);
+      _ctx.lineTo(0, this._height);
+      _ctx.lineTo(this._width, this._height);
+      _ctx.lineTo(this._width, 0);
       _ctx.fill();
 
       // draw shape
